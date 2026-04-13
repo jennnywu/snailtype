@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>snailtype</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="mode-dark accent-green">
+    <main class="app">
+        <div class="top-bar">
+            <div class="time-selector">
+                <button class="time-btn active" data-time="15">15</button>
+                <button class="time-btn" data-time="30">30</button>
+                <button class="time-btn" data-time="60">60</button>
+                <button class="time-btn" data-time="custom">custom</button>
+            </div>
+
+            <div class="controls">
+                <label class="control-group">
+                    <span>mode</span>
+                    <select id="mode-select" class="control-select">
+                        <option value="dark">dark</option>
+                        <option value="light">light</option>
+                    </select>
+                </label>
+
+                <label class="control-group">
+                    <span>colour</span>
+                    <select id="accent-select" class="control-select">
+                        <option value="green">green</option>
+                        <option value="pink">pink</option>
+                        <option value="blue">blue</option>
+                        <option value="purple">purple</option>
+                        <option value="peach">peach</option>
+                    </select>
+                </label>
+
+                <label class="control-group">
+                    <span>snail</span>
+                    <select id="skin-select" class="control-select">
+                        <option value="green">green</option>
+                        <option value="pink">pink</option>
+                        <option value="blue">blue</option>
+                        <option value="purple">purple</option>
+                        <option value="peach">peach</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="header-row">
+            <h1 class="title">snailtype</h1>
+
+            <div class="snail-progress">
+                <div class="snail-trail" id="snail-trail"></div>
+                <img src="snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
+                <div class="snail-line" id="snail-line"></div>
+
+                <div class="progress-timer">
+                    <span id="time">15</span>s
+                </div>
+            </div>
+        </div>
+
+        <div class="hint">start typing to begin the test. press [enter] to restart.</div>
+
+        <div id="text-display" class="text-display">
+            <div id="caret" class="caret"></div>
+        </div>
+
+        <div id="result-screen" class="result-screen hidden">
+            <h2>test complete!</h2>
+            <p>wpm: <span id="final-wpm">0</span></p>
+            <p>accuracy: <span id="final-accuracy">100</span>%</p>
+            <p>correct characters: <span id="final-chars">0/0</span></p>
+            <p>time: <span id="final-time">15</span>s</p>
+        </div>
+
+        <div class="restart-box hidden" id="restart-box" tabindex="0">
+            <span>try again [enter]</span>
+        </div>
+    </main>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
