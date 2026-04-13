@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>snailtype</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="mode-dark accent-green">
     <main class="app">
         <div class="top-bar">
-            <div class="time-selector">
+            <div class="time-selector" id="time-selector">
+                <div class="time-highlight" id="time-highlight"></div>
+
                 <button class="time-btn active" data-time="15">15</button>
                 <button class="time-btn" data-time="30">30</button>
                 <button class="time-btn" data-time="60">60</button>
@@ -19,34 +21,52 @@
             </div>
 
             <div class="controls">
-                <label class="control-group">
+                <div class="control-group">
                     <span>mode</span>
-                    <select id="mode-select" class="control-select">
-                        <option value="dark">dark</option>
-                        <option value="light">light</option>
-                    </select>
-                </label>
+                    <div class="dropdown" id="mode-dropdown">
+                        <button class="dropdown-selected" type="button">dark</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" type="button" data-value="dark">dark</button>
+                            <button class="dropdown-item" type="button" data-value="light">light</button>
+                        </div>
+                    </div>
+                </div>
 
-                <label class="control-group">
-                    <span>colour</span>
-                    <select id="accent-select" class="control-select">
-                        <option value="green">green</option>
-                        <option value="pink">pink</option>
-                        <option value="blue">blue</option>
-                        <option value="purple">purple</option>
-                        <option value="peach">peach</option>
-                    </select>
-                </label>
+                <div class="control-group">
+                    <span>color</span>
+                    <div class="dropdown" id="accent-dropdown">
+                        <button class="dropdown-selected" type="button">green</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" type="button" data-value="green">green</button>
+                            <button class="dropdown-item" type="button" data-value="pink">pink</button>
+                            <button class="dropdown-item" type="button" data-value="blue">blue</button>
+                            <button class="dropdown-item" type="button" data-value="purple">purple</button>
+                            <button class="dropdown-item" type="button" data-value="peach">peach</button>
+                        </div>
+                    </div>
+                </div>
 
-                <label class="control-group">
-                    <span>snail</span>
-                    <select id="skin-select" class="control-select">
-                        <option value="green">green</option>
-                        <option value="pink">pink</option>
-                        <option value="blue">blue</option>
-                        <option value="purple">purple</option>
-                        <option value="peach">peach</option>
-                    </select>
+                <div class="control-group">
+                    <span>animal</span>
+                    <div class="dropdown" id="skin-dropdown">
+                        <button class="dropdown-selected" type="button">snail</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" type="button" data-value="snail">snail</button>
+                            <button class="dropdown-item" type="button" data-value="frog">frog</button>
+                            <button class="dropdown-item" type="button" data-value="bunny">bunny</button>
+                            <button class="dropdown-item" type="button" data-value="turtle">turtle</button>
+                            <button class="dropdown-item" type="button" data-value="fish">fish</button>
+                            <button class="dropdown-item" type="button" data-value="duck">duck</button>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="control-group focus-toggle">
+                    <span>focus</span>
+                    <div class="toggle">
+                        <input type="checkbox" id="focus-toggle">
+                        <span class="slider"></span>
+                    </div>
                 </label>
             </div>
         </div>
@@ -56,7 +76,7 @@
 
             <div class="snail-progress">
                 <div class="snail-trail" id="snail-trail"></div>
-                <img src="snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
+                <img src="./images/snail/snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
                 <div class="snail-line" id="snail-line"></div>
 
                 <div class="progress-timer">
@@ -84,7 +104,34 @@
         </div>
     </main>
 
-    <script src="words.js"></script>
-    <script src="script.js"></script>
+    <div class="modal-overlay hidden" id="custom-time-modal">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="custom-time-title">
+            <h2 id="custom-time-title">custom time</h2>
+            <p>enter test duration in seconds</p>
+
+            <div class="custom-number-wrap">
+                <input
+                    type="number"
+                    id="custom-time-input"
+                    class="modal-input"
+                    min="1"
+                    step="1"
+                    placeholder="15"
+                >
+                <div class="custom-stepper">
+                    <button type="button" id="step-up" aria-label="Increase time">▲</button>
+                    <button type="button" id="step-down" aria-label="Decrease time">▼</button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn secondary" id="custom-time-cancel">cancel</button>
+                <button type="button" class="modal-btn primary" id="custom-time-confirm">save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./words.js"></script>
+    <script src="./script.js"></script>
 </body>
 </html>
