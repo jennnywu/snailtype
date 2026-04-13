@@ -944,6 +944,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key.length !== 1) return;
     if (!chars.length) return;
 
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     e.preventDefault();
     startTimer();
 
