@@ -10,85 +10,89 @@
 </head>
 <body class="mode-dark accent-green">
     <main class="app">
-        <div class="top-bar">
-            <div class="time-selector" id="time-selector">
-                <div class="time-highlight" id="time-highlight"></div>
+        <div class="header-shell">
+            <div class="top-bar">
+                <div class="time-selector" id="time-selector">
+                    <div class="time-highlight" id="time-highlight"></div>
 
-                <button class="time-btn active" data-time="15">15</button>
-                <button class="time-btn" data-time="30">30</button>
-                <button class="time-btn" data-time="60">60</button>
-                <button class="time-btn" data-time="custom">custom</button>
+                    <button class="time-btn active" data-time="15">15</button>
+                    <button class="time-btn" data-time="30">30</button>
+                    <button class="time-btn" data-time="60">60</button>
+                    <button class="time-btn" data-time="custom">custom</button>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <span>mode</span>
+                        <div class="dropdown" id="mode-dropdown">
+                            <button class="dropdown-selected" type="button">dark</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" type="button" data-value="dark">dark</button>
+                                <button class="dropdown-item" type="button" data-value="light">light</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span>color</span>
+                        <div class="dropdown" id="accent-dropdown">
+                            <button class="dropdown-selected" type="button">green</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" type="button" data-value="green">green</button>
+                                <button class="dropdown-item" type="button" data-value="pink">pink</button>
+                                <button class="dropdown-item" type="button" data-value="blue">blue</button>
+                                <button class="dropdown-item" type="button" data-value="purple">purple</button>
+                                <button class="dropdown-item" type="button" data-value="peach">peach</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span>animal</span>
+                        <div class="dropdown" id="skin-dropdown">
+                            <button class="dropdown-selected" type="button">snail</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" type="button" data-value="snail">snail</button>
+                                <button class="dropdown-item" type="button" data-value="frog">frog</button>
+                                <button class="dropdown-item" type="button" data-value="bunny">bunny</button>
+                                <button class="dropdown-item" type="button" data-value="turtle">turtle</button>
+                                <button class="dropdown-item" type="button" data-value="fish">fish</button>
+                                <button class="dropdown-item" type="button" data-value="duck">duck</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group focus-toggle">
+                        <span>focus</span>
+                        <div class="toggle">
+                            <input type="checkbox" id="focus-toggle" aria-label="Toggle focus mode">
+                            <span class="slider"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="controls">
-                <div class="control-group">
-                    <span>mode</span>
-                    <div class="dropdown" id="mode-dropdown">
-                        <button class="dropdown-selected" type="button">dark</button>
-                        <div class="dropdown-menu">
-                            <button class="dropdown-item" type="button" data-value="dark">dark</button>
-                            <button class="dropdown-item" type="button" data-value="light">light</button>
-                        </div>
+            <div class="header-row">
+                <h1 class="title">snailtype</h1>
+
+                <div class="snail-progress">
+                    <div class="snail-trail" id="snail-trail"></div>
+                    <img src="./images/snail/snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
+                    <div class="snail-line" id="snail-line"></div>
+
+                    <div class="progress-timer">
+                        <span id="time">15</span>s
                     </div>
                 </div>
-
-                <div class="control-group">
-                    <span>color</span>
-                    <div class="dropdown" id="accent-dropdown">
-                        <button class="dropdown-selected" type="button">green</button>
-                        <div class="dropdown-menu">
-                            <button class="dropdown-item" type="button" data-value="green">green</button>
-                            <button class="dropdown-item" type="button" data-value="pink">pink</button>
-                            <button class="dropdown-item" type="button" data-value="blue">blue</button>
-                            <button class="dropdown-item" type="button" data-value="purple">purple</button>
-                            <button class="dropdown-item" type="button" data-value="peach">peach</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <span>animal</span>
-                    <div class="dropdown" id="skin-dropdown">
-                        <button class="dropdown-selected" type="button">snail</button>
-                        <div class="dropdown-menu">
-                            <button class="dropdown-item" type="button" data-value="snail">snail</button>
-                            <button class="dropdown-item" type="button" data-value="frog">frog</button>
-                            <button class="dropdown-item" type="button" data-value="bunny">bunny</button>
-                            <button class="dropdown-item" type="button" data-value="turtle">turtle</button>
-                            <button class="dropdown-item" type="button" data-value="fish">fish</button>
-                            <button class="dropdown-item" type="button" data-value="duck">duck</button>
-                        </div>
-                    </div>
-                </div>
-
-                <label class="control-group focus-toggle">
-                    <span>focus</span>
-                    <div class="toggle">
-                        <input type="checkbox" id="focus-toggle">
-                        <span class="slider"></span>
-                    </div>
-                </label>
             </div>
+
+            <div class="hint">start typing to begin the test. press [enter] to restart.</div>
         </div>
-
-        <div class="header-row">
-            <h1 class="title">snailtype</h1>
-
-            <div class="snail-progress">
-                <div class="snail-trail" id="snail-trail"></div>
-                <img src="./images/snail/snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
-                <div class="snail-line" id="snail-line"></div>
-
-                <div class="progress-timer">
-                    <span id="time">15</span>s
-                </div>
-            </div>
-        </div>
-
-        <div class="hint">start typing to begin the test. press [enter] to restart.</div>
 
         <div id="text-display" class="text-display">
-            <div id="caret" class="caret"></div>
+            <div id="text-track" class="text-track">
+                <div id="caret" class="caret"></div>
+            </div>
         </div>
 
         <div id="result-screen" class="result-screen hidden">

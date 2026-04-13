@@ -10,6 +10,11 @@ const TARGET_LINES_AHEAD = 5;
 const MAX_APPEND_BATCHES = 12;
 
 const textDisplay = document.getElementById("text-display");
+const textTrack = document.getElementById("text-track");
+
+let isLineShifting = false;
+let pendingPrune = null;
+
 const caret = document.getElementById("caret");
 const timeEl = document.getElementById("time");
 const hintEl = document.querySelector(".hint");
@@ -29,8 +34,6 @@ const finalCharsEl = document.getElementById("final-chars");
 const timeSelector = document.getElementById("time-selector");
 const timeHighlight = document.getElementById("time-highlight");
 const timeButtons = document.querySelectorAll(".time-btn");
-
-const focusToggle = document.getElementById("focus-toggle");
 
 const customTimeModal = document.getElementById("custom-time-modal");
 const customTimeInput = document.getElementById("custom-time-input");
@@ -386,13 +389,14 @@ function getRemainingLinesAhead() {
 }
 
 function pruneTypedLines() {
-    if (!chars.length || currentIndex <= 0) return;
+    if (!chars.length || currentIndex <= 0 || isLineShifting) return;
 
     const typedLineTops = [];
 
     for (let i = 0; i < currentIndex; i++) {
         const top = getLineTopForIndex(i);
         if (top === null) continue;
+
         if (typedLineTops.length === 0 || typedLineTops[typedLineTops.length - 1] !== top) {
             typedLineTops.push(top);
         }
@@ -405,21 +409,48 @@ function pruneTypedLines() {
 
     while (removeCount < currentIndex) {
         const top = getLineTopForIndex(removeCount);
-        if (top === null || top >= firstKeptLineTop) {
-            break;
-        }
+        if (top === null || top >= firstKeptLineTop) break;
         removeCount++;
     }
 
-    if (removeCount <= 0) return;
+    if (removeCount <= 0 || !chars[removeCount]) return;
 
-    chars.slice(0, removeCount).forEach((el) => el.remove());
-    chars = chars.slice(removeCount);
-    currentText = currentText.slice(removeCount);
-    currentIndex -= removeCount;
+    const shiftAmount = chars[removeCount].offsetTop;
+    if (!Number.isFinite(shiftAmount) || shiftAmount <= 0) return;
 
-    updateCursor();
-    updateFocusModeView();
+    isLineShifting = true;
+    pendingPrune = { removeCount };
+
+    textTrack.classList.remove("no-transition");
+    textTrack.style.transform = `translateY(-${shiftAmount}px)`;
+
+    const onDone = () => {
+        textTrack.removeEventListener("transitionend", onDone);
+
+        const { removeCount } = pendingPrune || {};
+        pendingPrune = null;
+
+        if (!removeCount) {
+            isLineShifting = false;
+            return;
+        }
+
+        chars.slice(0, removeCount).forEach((el) => el.remove());
+        chars = chars.slice(removeCount);
+        currentText = currentText.slice(removeCount);
+        currentIndex -= removeCount;
+
+        textTrack.classList.add("no-transition");
+        textTrack.style.transform = "translateY(0)";
+
+        requestAnimationFrame(() => {
+            isLineShifting = false;
+            updateCursor();
+            updateFocusModeView();
+        });
+    };
+
+    textTrack.addEventListener("transitionend", onDone, { once: true });
 }
 
 function updateFocusModeView() {
@@ -432,21 +463,24 @@ function updateFocusModeView() {
     if (!focusMode) return;
 
     const safeIndex = Math.min(currentIndex, currentText.length - 1);
+    if (safeIndex < 0) return;
+
     const currentWord = getWordBounds(safeIndex);
     if (!currentWord) return;
 
-    let nextStart = currentWord.end + 1;
     let nextWord = null;
+    const nextStart = currentWord.end + 1;
 
     if (nextStart < currentText.length) {
         nextWord = getWordBounds(nextStart);
     }
 
     chars.forEach((charEl, i) => {
+        const isTyped = i < currentIndex;
         const inCurrentWord = i >= currentWord.start && i < currentWord.end;
         const inNextWord = nextWord && i >= nextWord.start && i < nextWord.end;
 
-        if (inCurrentWord || inNextWord) {
+        if (isTyped || inCurrentWord || inNextWord) {
             charEl.classList.add("focus-visible");
         } else {
             charEl.classList.add("dimmed");
@@ -454,20 +488,67 @@ function updateFocusModeView() {
     });
 }
 
+function isCharVisibleInFocus(index) {
+    if (!focusMode) return true;
+    if (!currentText.length) return true;
+
+    const safeIndex = Math.min(currentIndex, currentText.length - 1);
+    if (safeIndex < 0) return true;
+
+    const currentWord = getWordBounds(safeIndex);
+    if (!currentWord) return true;
+
+    let nextWord = null;
+    const nextStart = currentWord.end + 1;
+
+    if (nextStart < currentText.length) {
+        nextWord = getWordBounds(nextStart);
+    }
+
+    const inCurrentWord = index >= currentWord.start && index < currentWord.end;
+    const inNextWord = nextWord && index >= nextWord.start && index < nextWord.end;
+
+    return inCurrentWord || inNextWord;
+}
+
 function renderText(text, append = false) {
     if (!append) {
-        textDisplay.innerHTML = "";
-        textDisplay.appendChild(caret);
+        textTrack.innerHTML = "";
+        textTrack.appendChild(caret);
         chars = [];
     }
+
+    const startIndex = chars.length;
 
     for (const ch of text) {
         const span = document.createElement("span");
         span.textContent = ch;
         span.className = "char";
-        textDisplay.appendChild(span);
+
+        span.style.opacity = "0";
+        span.style.transform = "translateY(4px)";
+
+        textTrack.appendChild(span);
         chars.push(span);
     }
+
+    updateFocusModeView();
+
+    chars.slice(startIndex).forEach((span, offset) => {
+        const charIndex = startIndex + offset;
+        const shouldBeVisible = isCharVisibleInFocus(charIndex);
+
+        requestAnimationFrame(() => {
+            span.style.transition = "opacity 0.18s ease, transform 0.18s ease";
+            span.style.transform = "translateY(0)";
+            span.style.opacity = shouldBeVisible ? "1" : "0.08";
+
+            setTimeout(() => {
+                span.style.opacity = "";
+                span.style.transform = "";
+            }, 200);
+        });
+    });
 
     updateCursor();
     updateFocusModeView();
@@ -637,14 +718,13 @@ function moveCaret() {
         return;
     }
 
-    const rect = chars[currentIndex].getBoundingClientRect();
-    const container = textDisplay.getBoundingClientRect();
+    const el = chars[currentIndex];
 
-    const x = rect.left - container.left;
-    const y = rect.top - container.top;
+    const x = el.offsetLeft;
+    const y = el.offsetTop;
 
     caret.style.display = "block";
-    caret.style.height = `${rect.height}px`;
+    caret.style.height = `${el.offsetHeight}px`;
     caret.style.transform = `translate(${x}px, ${y}px)`;
 }
 
@@ -729,10 +809,12 @@ function restartTest() {
     loadInitialWords();
 
     requestAnimationFrame(() => {
-        ensureLineBuffer();
-        updateFocusModeView();
-        updateCursor();
-        updateSnailProgress();
+        requestAnimationFrame(() => {
+            ensureLineBuffer();
+            updateFocusModeView();
+            updateCursor();
+            updateSnailProgress();
+        });
     });
 }
 
@@ -762,11 +844,23 @@ timeButtons.forEach((btn) => {
     btn.addEventListener("click", () => handleTimeSelection(btn));
 });
 
+const focusToggle = document.getElementById("focus-toggle");
+const focusToggleWrap = document.querySelector(".focus-toggle .toggle");
+
+if (focusToggleWrap && focusToggle) {
+    focusToggleWrap.addEventListener("click", (e) => {
+        if (e.target === focusToggle) return;
+        focusToggle.checked = !focusToggle.checked;
+        focusToggle.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+}
+
 if (focusToggle) {
     focusToggle.addEventListener("change", () => {
         focusMode = focusToggle.checked;
         localStorage.setItem("snailtype-focus", String(focusMode));
         updateFocusModeView();
+        updateCursor();
     });
 }
 
@@ -825,6 +919,7 @@ document.addEventListener("keydown", (e) => {
     }
 
     if (finished) return;
+    if (isLineShifting) return;
 
     if (e.key === "Backspace") {
         e.preventDefault();
@@ -849,6 +944,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key.length !== 1) return;
     if (!chars.length) return;
 
+    e.preventDefault();
     startTimer();
 
     if (currentIndex >= chars.length) return;
