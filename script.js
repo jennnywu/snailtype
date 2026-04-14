@@ -248,7 +248,7 @@ function submitCustomTime() {
         customBtn.textContent = "custom";
         setActive(presetBtn);
     } else {
-        customBtn.textContent = `${selectedDuration}s`;
+        customBtn.textContent = `${selectedDuration}`;
         setActive(customBtn);
     }
 
