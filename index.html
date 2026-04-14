@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
+
 <body class="mode-dark accent-green">
     <main class="app">
         <div class="header-shell">
@@ -79,7 +80,6 @@
                     <div class="snail-trail" id="snail-trail"></div>
                     <img src="./images/snail/snail-dark-green.png" class="snail-icon" id="snail-icon" alt="">
                     <div class="snail-line" id="snail-line"></div>
-
                     <div class="progress-timer">
                         <span id="time">15</span>s
                     </div>
@@ -97,7 +97,7 @@
 
         <div id="result-screen" class="result-screen hidden">
             <h2>test complete!</h2>
-            <p>wpm: <span id="final-wpm">0</span></p>
+            <p>words per minute: <span id="final-wpm">0</span></p>
             <p>accuracy: <span id="final-accuracy">100</span>%</p>
             <p>correct characters: <span id="final-chars">0/0</span></p>
             <p>time: <span id="final-time">15</span>s</p>
@@ -132,6 +132,10 @@
                 <button type="button" class="modal-btn primary" id="custom-time-confirm">save</button>
             </div>
         </div>
+    </div>
+
+    <div class="footer-credit">
+        inspired by <a href="https://monkeytype.com/" target="_blank">Monkeytype</a>
     </div>
 
     <script src="./words.js"></script>

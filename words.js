@@ -51,7 +51,7 @@ const wordBank = [
     "quality","quarter","queen","question","quick","quiet","quite","quote",
 
     // r
-    "race","radio","raise","range","rate","reach","read","ready","real","reason","receive","record","red","remain","remember","report","rest","result","return","right","rise","risk","road","rock","room","rule","run",
+    "race","radio","raise","range","rate","reach","read","ready","real","reason","receive","record","red","remain","remember","report","research","rest","result","return","right","rise","risk","road","rock","room","rule","run",
 
     // s
     "safe","same","save","say","school","science","sea","season","seat","second","see","seem","self","send","sense","series","serve","set","several","shape","shark","she","short","should","show","side","sign","simple","since","sing","single","sit","six","size","skill","small","so","social","some","someone","something","song","soon","sort","sound","source","south","space","speak","special","speed","spend","spring","stand","start","state","stay","step","still","stop","story","street","strong","student","study","style","subject","success","such","summer","support","sure","system",
@@ -60,13 +60,13 @@ const wordBank = [
     "table","take","talk","task","teach","team","tell","ten","term","test","than","thank","that","the","their","them","then","there","these","they","thing","think","this","those","though","thought","three","through","time","to","today","together","too","top","total","touch","toward","town","trade","train","travel","tree","true","try","turn","two","type",
 
     // u
-    "under","understand","unit","until","up","upon","use","usual",
+    "umbrella","under","understand","unit","until","unusual","up","upon","use","usual",
 
     // v
     "value","various","very","view","visit","voice",
 
     // w
-    "wait","walk","wall","want","war","watch","water","way","we","wear","week","well","west","what","when","where","which","while","white","who","whole","why","will","win","wind","window","wish","with","within","without","woman","word","work","world","would","write",
+    "wait","walk","wall","want","watch","water","way","we","wear","week","well","west","what","when","where","which","while","white","who","whole","why","will","win","wind","window","wish","with","within","without","woman","word","work","world","would","write",
 
     // x
     "xray","xylophone",

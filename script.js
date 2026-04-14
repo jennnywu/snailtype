@@ -12,9 +12,6 @@ const MAX_APPEND_BATCHES = 12;
 const textDisplay = document.getElementById("text-display");
 const textTrack = document.getElementById("text-track");
 
-let isLineShifting = false;
-let pendingPrune = null;
-
 const caret = document.getElementById("caret");
 const timeEl = document.getElementById("time");
 const hintEl = document.querySelector(".hint");
@@ -42,9 +39,14 @@ const customTimeConfirm = document.getElementById("custom-time-confirm");
 const stepUp = document.getElementById("step-up");
 const stepDown = document.getElementById("step-down");
 
+const focusToggle = document.getElementById("focus-toggle");
+const focusToggleWrap = document.querySelector(".focus-toggle .toggle");
+
 const MODES = ["dark", "light"];
 const ACCENTS = ["green", "pink", "blue", "purple", "peach"];
-const SKINS = ["snail", "frog", "bunny", "turtle", "fish", "duck"];
+
+let isLineShifting = false;
+let pendingPrune = null;
 
 let currentMode = "dark";
 let currentAccent = "green";
@@ -79,7 +81,7 @@ function setupDropdown(dropdownId, initialValue, onSelect) {
     const selected = dropdown.querySelector(".dropdown-selected");
     const items = dropdown.querySelectorAll(".dropdown-item");
 
-    selected.textContent = initialValue;
+    setDropdownValue(dropdownId, initialValue);
 
     selected.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -90,7 +92,7 @@ function setupDropdown(dropdownId, initialValue, onSelect) {
     items.forEach((item) => {
         item.addEventListener("click", () => {
             const value = item.dataset.value;
-            selected.textContent = item.textContent;
+            setDropdownValue(dropdownId, value);
             dropdown.classList.remove("open");
             onSelect(value, item.textContent);
         });
@@ -102,10 +104,14 @@ function setDropdownValue(dropdownId, value) {
     if (!dropdown) return;
 
     const selected = dropdown.querySelector(".dropdown-selected");
+    const items = dropdown.querySelectorAll(".dropdown-item");
     const item = dropdown.querySelector(`.dropdown-item[data-value="${value}"]`);
+
+    items.forEach((i) => i.classList.remove("active"));
 
     if (selected && item) {
         selected.textContent = item.textContent;
+        item.classList.add("active");
     }
 }
 
@@ -117,9 +123,7 @@ function closeAllDropdowns(exceptId = null) {
     });
 }
 
-document.addEventListener("click", () => {
-    closeAllDropdowns();
-});
+document.addEventListener("click", () => closeAllDropdowns());
 
 function getImagePath(skin, mode, accent) {
     return `./images/${skin}/${skin}-${mode}-${accent}.png`;
@@ -127,6 +131,12 @@ function getImagePath(skin, mode, accent) {
 
 function updateAnimalImage() {
     snailIcon.src = getImagePath(currentSkin, currentMode, currentAccent);
+
+    if (["bunny", "turtle", "fish"].includes(currentSkin)) {
+        snailIcon.style.transform = "translateY(-50%) scale(1.15)";
+    } else {
+        snailIcon.style.transform = "translateY(-50%) scale(1)";
+    }
 }
 
 function applyAppearance(mode, accent) {
@@ -135,9 +145,7 @@ function applyAppearance(mode, accent) {
 
     document.body.classList.remove(...MODES.map((m) => `mode-${m}`));
     document.body.classList.remove(...ACCENTS.map((a) => `accent-${a}`));
-
-    document.body.classList.add(`mode-${mode}`);
-    document.body.classList.add(`accent-${accent}`);
+    document.body.classList.add(`mode-${mode}`, `accent-${accent}`);
 
     localStorage.setItem("snailtype-mode", mode);
     localStorage.setItem("snailtype-accent", accent);
@@ -152,15 +160,10 @@ function applySkin(skin) {
 }
 
 function loadPreferences() {
-    const savedMode = localStorage.getItem("snailtype-mode") || "dark";
-    const savedAccent = localStorage.getItem("snailtype-accent") || "green";
-    const savedSkin = localStorage.getItem("snailtype-skin") || "snail";
-    const savedFocusMode = localStorage.getItem("snailtype-focus") === "true";
-
-    currentMode = savedMode;
-    currentAccent = savedAccent;
-    currentSkin = savedSkin;
-    focusMode = savedFocusMode;
+    currentMode = localStorage.getItem("snailtype-mode") || "dark";
+    currentAccent = localStorage.getItem("snailtype-accent") || "green";
+    currentSkin = localStorage.getItem("snailtype-skin") || "snail";
+    focusMode = localStorage.getItem("snailtype-focus") === "true";
 
     if (focusToggle) {
         focusToggle.checked = focusMode;
@@ -184,6 +187,7 @@ function updateTimeHighlight(activeBtn, animate = true) {
     const top = btnRect.top - selectorRect.top;
     const width = btnRect.width;
     const height = btnRect.height;
+    const transition = "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), width 0.34s cubic-bezier(0.22, 1, 0.36, 1), height 0.34s cubic-bezier(0.22, 1, 0.36, 1)";
 
     if (timeHighlightFrame) {
         cancelAnimationFrame(timeHighlightFrame);
@@ -197,14 +201,12 @@ function updateTimeHighlight(activeBtn, animate = true) {
         timeHighlight.style.transform = `translate(${left}px, ${top}px) scaleX(1)`;
 
         requestAnimationFrame(() => {
-            timeHighlight.style.transition =
-                "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), width 0.34s cubic-bezier(0.22, 1, 0.36, 1), height 0.34s cubic-bezier(0.22, 1, 0.36, 1)";
+            timeHighlight.style.transition = transition;
         });
         return;
     }
 
-    timeHighlight.style.transition =
-        "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), width 0.34s cubic-bezier(0.22, 1, 0.36, 1), height 0.34s cubic-bezier(0.22, 1, 0.36, 1)";
+    timeHighlight.style.transition = transition;
     timeHighlight.style.width = `${width}px`;
     timeHighlight.style.height = `${height}px`;
     timeHighlight.style.transform = `translate(${left}px, ${top}px) scaleX(1.08)`;
@@ -220,7 +222,6 @@ function updateTimeHighlight(activeBtn, animate = true) {
 function openCustomTimeModal() {
     customTimeModal.classList.remove("hidden");
     customTimeInput.value = "";
-
     requestAnimationFrame(() => customTimeInput.focus());
     document.body.style.overflow = "hidden";
 }
@@ -230,12 +231,34 @@ function closeCustomTimeModal() {
     document.body.style.overflow = "";
 }
 
+function bumpCustomTime(direction) {
+    if (customTimeInput.value === "") {
+        if (direction > 0) {
+            customTimeInput.value = 1;
+        }
+        return;
+    }
+
+    const current = Number(customTimeInput.value);
+    customTimeInput.value = direction > 0
+        ? current + 1
+        : Math.max(1, current - 1);
+}
+
+function triggerCustomTimeShake() {
+    customTimeInput.classList.add("shake");
+    setTimeout(() => {
+        customTimeInput.classList.remove("shake");
+    }, 300);
+}
+
 function submitCustomTime() {
     const num = Number(customTimeInput.value);
 
     if (!Number.isFinite(num) || num <= 0) {
+        customTimeInput.value = "";
         customTimeInput.focus();
-        customTimeInput.select();
+        triggerCustomTimeShake();
         return;
     }
 
@@ -263,38 +286,54 @@ stepUp.addEventListener("mousedown", (e) => e.preventDefault());
 stepDown.addEventListener("mousedown", (e) => e.preventDefault());
 
 stepUp.addEventListener("click", () => {
-    const current = Number(customTimeInput.value) || 1;
-    customTimeInput.value = current + 1;
+    bumpCustomTime(1);
     customTimeInput.focus();
 });
 
 stepDown.addEventListener("click", () => {
-    const current = Number(customTimeInput.value) || 1;
-    customTimeInput.value = Math.max(1, current - 1);
+    bumpCustomTime(-1);
     customTimeInput.focus();
 });
 
+customTimeInput.addEventListener("input", () => {
+    customTimeInput.value = customTimeInput.value.replace(/[^0-9]/g, "");
+});
+
+customTimeInput.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    bumpCustomTime(e.deltaY < 0 ? 1 : -1);
+});
+
 customTimeInput.addEventListener("keydown", (e) => {
+    const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+
     if (e.key === "Enter") {
         e.preventDefault();
         submitCustomTime();
+        return;
     }
 
     if (e.key === "Escape") {
         e.preventDefault();
         closeCustomTimeModal();
+        return;
     }
 
     if (e.key === "ArrowUp") {
         e.preventDefault();
-        const current = Number(customTimeInput.value) || 1;
-        customTimeInput.value = current + 1;
+        bumpCustomTime(1);
+        return;
     }
 
     if (e.key === "ArrowDown") {
         e.preventDefault();
-        const current = Number(customTimeInput.value) || 1;
-        customTimeInput.value = Math.max(1, current - 1);
+        bumpCustomTime(-1);
+        return;
+    }
+
+    if (allowedKeys.includes(e.key)) return;
+    if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
     }
 });
 
@@ -320,11 +359,9 @@ function getRandomWordAvoiding(recentWords = []) {
     const blocked = new Set(recentWords.filter(Boolean));
     const availableWords = wordBank.filter((word) => !blocked.has(word));
 
-    if (availableWords.length > 0) {
-        return availableWords[Math.floor(Math.random() * availableWords.length)];
-    }
-
-    return getRandomWord();
+    return availableWords.length > 0
+        ? availableWords[Math.floor(Math.random() * availableWords.length)]
+        : getRandomWord();
 }
 
 function getRecentWordsFromText(text, count = RECENT_WORD_WINDOW) {
@@ -350,8 +387,9 @@ function generateWords(count = 30, seedRecentWords = []) {
 }
 
 function getWordBounds(index) {
-    if (!currentText.length) return null;
-    if (index < 0 || index >= currentText.length) return null;
+    if (!currentText.length || index < 0 || index >= currentText.length) {
+        return null;
+    }
 
     let start = index;
     let end = index;
@@ -368,8 +406,7 @@ function getWordBounds(index) {
 }
 
 function getLineTopForIndex(index) {
-    if (!chars[index]) return null;
-    return Math.round(chars[index].offsetTop);
+    return chars[index] ? Math.round(chars[index].offsetTop) : null;
 }
 
 function getUniqueLineTopsInRange(startIndex, endIndexExclusive) {
@@ -393,8 +430,8 @@ function getRemainingLinesAhead() {
     const currentTop = getLineTopForIndex(currentIndex);
     if (currentTop === null) return 0;
 
-    const aheadTops = getUniqueLineTopsInRange(currentIndex, chars.length);
-    return aheadTops.filter((top) => top > currentTop).length;
+    return getUniqueLineTopsInRange(currentIndex, chars.length)
+        .filter((top) => top > currentTop).length;
 }
 
 function pruneTypedLines() {
@@ -434,20 +471,18 @@ function pruneTypedLines() {
     textTrack.style.transform = `translateY(-${shiftAmount}px)`;
 
     const onDone = () => {
-        textTrack.removeEventListener("transitionend", onDone);
-
-        const { removeCount } = pendingPrune || {};
+        const prune = pendingPrune;
         pendingPrune = null;
 
-        if (!removeCount) {
+        if (!prune?.removeCount) {
             isLineShifting = false;
             return;
         }
 
-        chars.slice(0, removeCount).forEach((el) => el.remove());
-        chars = chars.slice(removeCount);
-        currentText = currentText.slice(removeCount);
-        currentIndex -= removeCount;
+        chars.slice(0, prune.removeCount).forEach((el) => el.remove());
+        chars = chars.slice(prune.removeCount);
+        currentText = currentText.slice(prune.removeCount);
+        currentIndex -= prune.removeCount;
 
         textTrack.classList.add("no-transition");
         textTrack.style.transform = "translateY(0)";
@@ -477,12 +512,8 @@ function updateFocusModeView() {
     const currentWord = getWordBounds(safeIndex);
     if (!currentWord) return;
 
-    let nextWord = null;
     const nextStart = currentWord.end + 1;
-
-    if (nextStart < currentText.length) {
-        nextWord = getWordBounds(nextStart);
-    }
+    const nextWord = nextStart < currentText.length ? getWordBounds(nextStart) : null;
 
     chars.forEach((charEl, i) => {
         const isTyped = i < currentIndex;
@@ -498,8 +529,7 @@ function updateFocusModeView() {
 }
 
 function isCharVisibleInFocus(index) {
-    if (!focusMode) return true;
-    if (!currentText.length) return true;
+    if (!focusMode || !currentText.length) return true;
 
     const safeIndex = Math.min(currentIndex, currentText.length - 1);
     if (safeIndex < 0) return true;
@@ -507,12 +537,8 @@ function isCharVisibleInFocus(index) {
     const currentWord = getWordBounds(safeIndex);
     if (!currentWord) return true;
 
-    let nextWord = null;
     const nextStart = currentWord.end + 1;
-
-    if (nextStart < currentText.length) {
-        nextWord = getWordBounds(nextStart);
-    }
+    const nextWord = nextStart < currentText.length ? getWordBounds(nextStart) : null;
 
     const inCurrentWord = index >= currentWord.start && index < currentWord.end;
     const inNextWord = nextWord && index >= nextWord.start && index < nextWord.end;
@@ -533,10 +559,8 @@ function renderText(text, append = false) {
         const span = document.createElement("span");
         span.textContent = ch;
         span.className = "char";
-
         span.style.opacity = "0";
         span.style.transform = "translateY(4px)";
-
         textTrack.appendChild(span);
         chars.push(span);
     }
@@ -570,7 +594,9 @@ function loadInitialWords() {
 }
 
 function appendMoreWords() {
-    const currentWordCount = currentText.trim() ? currentText.trim().split(/\s+/).length : 0;
+    const currentWordCount = currentText.trim()
+        ? currentText.trim().split(/\s+/).length
+        : 0;
 
     if (currentWordCount >= MAX_RENDERED_WORDS) {
         return false;
@@ -619,7 +645,6 @@ function startTimer() {
 
         const elapsed = (now - startTime) / 1000;
         timeLeft = Math.max(selectedDuration - elapsed, 0);
-
         timeEl.textContent = Math.ceil(timeLeft);
         updateSnailProgress();
 
@@ -643,15 +668,13 @@ function updateSnailProgress() {
 
     const animalWidth = snailIcon.offsetWidth || 32;
     const timerWidth = timerEl ? timerEl.offsetWidth : 40;
-
     const usableWidth = container.clientWidth - timerWidth - 16;
     const maxLeft = Math.max(usableWidth - animalWidth, 0);
 
     let progress = 0;
 
     if (started && startTime !== null) {
-        const elapsed = (performance.now() - startTime) / 1000;
-        progress = Math.min(elapsed / selectedDuration, 1);
+        progress = Math.min((performance.now() - startTime) / 1000 / selectedDuration, 1);
     }
 
     if (finished) {
@@ -660,7 +683,9 @@ function updateSnailProgress() {
 
     const animalLeft = progress * maxLeft;
     snailIcon.style.left = `${animalLeft}px`;
-    snailIcon.style.transform = "translateY(-50%)";
+  
+    const scale = ["bunny", "turtle", "fish"].includes(currentSkin) ? 1.15 : 1;
+    snailIcon.style.transform = `translateY(-50%) scale(${scale})`;
 
     const lineGap = 10;
     const lineStart = animalLeft + animalWidth + lineGap;
@@ -693,9 +718,7 @@ function playHappyWiggle() {
     const wiggleDuration = 1200;
 
     function wiggle(now) {
-        const elapsed = now - wiggleStart;
-        const progress = Math.min(elapsed / wiggleDuration, 1);
-
+        const progress = Math.min((now - wiggleStart) / wiggleDuration, 1);
         const damping = 1 - progress;
         const angle = Math.sin(progress * Math.PI * 8) * 10 * damping;
         const bounceY = Math.abs(Math.sin(progress * Math.PI * 6)) * -6 * damping;
@@ -717,24 +740,15 @@ function playHappyWiggle() {
 }
 
 function moveCaret() {
-    if (!chars.length) {
-        caret.style.display = "none";
-        return;
-    }
-
-    if (finished || currentIndex >= chars.length) {
+    if (!chars.length || finished || currentIndex >= chars.length) {
         caret.style.display = "none";
         return;
     }
 
     const el = chars[currentIndex];
-
-    const x = el.offsetLeft;
-    const y = el.offsetTop;
-
     caret.style.display = "block";
     caret.style.height = `${el.offsetHeight}px`;
-    caret.style.transform = `translate(${x}px, ${y}px)`;
+    caret.style.transform = `translate(${el.offsetLeft}px, ${el.offsetTop}px)`;
 }
 
 function updateCursor() {
@@ -746,7 +760,6 @@ function updateCursor() {
 function calculateResults() {
     const total = correctCount + incorrectCount;
     const minutes = selectedDuration / 60;
-
     const grossWpm = (total / 5) / minutes;
     const penalty = (incorrectCount / 5) / minutes;
     const wpm = Math.max(0, Math.round(grossWpm - penalty));
@@ -765,16 +778,14 @@ function endTest() {
 
     hintEl.style.display = "none";
     restartBox.classList.remove("hidden");
-
     caret.style.display = "none";
     textDisplay.style.display = "none";
 
     const results = calculateResults();
+    const total = correctCount + incorrectCount;
 
     finalWpmEl.textContent = results.wpm;
     finalAccuracyEl.textContent = results.accuracy;
-
-    const total = correctCount + incorrectCount;
     finalCharsEl.textContent = `${correctCount}/${total}`;
     finalTimeEl.textContent = selectedDuration;
 
@@ -794,6 +805,10 @@ function restartTest() {
         wiggleFrameId = null;
     }
 
+    snailIcon.style.transition = "left 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
+    snailLine.style.transition = "left 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
+    snailTrail.style.transition = "width 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
+
     chars = [];
     currentIndex = 0;
     correctCount = 0;
@@ -805,17 +820,25 @@ function restartTest() {
     startTime = null;
 
     snailTrail.textContent = "";
-    snailIcon.style.transform = "translateY(-50%) rotate(0deg) scale(1, 1)";
+    
+    const scale = ["bunny", "turtle", "fish"].includes(currentSkin) ? 1.15 : 1;
+    snailIcon.style.transform = `translateY(-50%) rotate(0deg) scale(${scale})`;
 
     hintEl.style.display = "block";
     restartBox.classList.add("hidden");
-
     timeEl.textContent = timeLeft;
     textDisplay.style.display = "block";
     resultScreen.classList.add("hidden");
     caret.style.display = "block";
 
     loadInitialWords();
+    updateSnailProgress();
+
+    setTimeout(() => {
+        snailIcon.style.transition = "";
+        snailLine.style.transition = "";
+        snailTrail.style.transition = "";
+    }, 350);
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -853,9 +876,6 @@ timeButtons.forEach((btn) => {
     btn.addEventListener("click", () => handleTimeSelection(btn));
 });
 
-const focusToggle = document.getElementById("focus-toggle");
-const focusToggleWrap = document.querySelector(".focus-toggle .toggle");
-
 if (focusToggleWrap && focusToggle) {
     focusToggleWrap.addEventListener("click", (e) => {
         if (e.target === focusToggle) return;
@@ -889,19 +909,23 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
+    loadPreferences();
+
     setupDropdown("mode-dropdown", currentMode, (value) => {
         applyAppearance(value, currentAccent);
+        setDropdownValue("mode-dropdown", value);
     });
 
     setupDropdown("accent-dropdown", currentAccent, (value) => {
         applyAppearance(currentMode, value);
+        setDropdownValue("accent-dropdown", value);
     });
 
     setupDropdown("skin-dropdown", currentSkin, (value) => {
         applySkin(value);
+        setDropdownValue("skin-dropdown", value);
     });
 
-    loadPreferences();
     updateAnimalImage();
 
     const activeBtn = document.querySelector(".time-btn.active");
@@ -913,7 +937,6 @@ window.addEventListener("load", () => {
 });
 
 document.addEventListener("keydown", (e) => {
-
     if (e.key === "Tab") {
         e.preventDefault();
 
@@ -939,8 +962,7 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    if (finished) return;
-    if (isLineShifting) return;
+    if (finished || isLineShifting) return;
 
     if (e.key === "Backspace") {
         e.preventDefault();
@@ -962,10 +984,9 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    if (e.key.length !== 1) return;
-    if (!chars.length) return;
-
+    if (e.key.length !== 1 || !chars.length) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+
     e.preventDefault();
     startTimer();
 
