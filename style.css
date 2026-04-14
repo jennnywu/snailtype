@@ -235,8 +235,13 @@ body.mode-light .time-btn:hover {
     transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
-.dropdown-selected:hover {
-    background: var(--panel-hover);
+body.mode-dark .dropdown-selected:hover {
+    background-color: rgba(144, 143, 143, 0.148);
+}
+
+body.mode-light .dropdown-selected:hover {
+    background: #dcd6c9;
+
 }
 
 .dropdown-selected::after {
@@ -246,7 +251,7 @@ body.mode-light .time-btn:hover {
     top: 50%;
     transform: translateY(-50%) rotate(0deg);
     color: var(--subtle);
-    font-size: 0.7rem;
+    font-size: 1.3rem;
     pointer-events: none;
     transition: transform 0.2s ease, color 0.2s ease;
 }
@@ -316,6 +321,7 @@ body.mode-light .dropdown-item:hover {
 
 .focus-toggle {
     gap: 0.75rem;
+    margin-left: 1rem;
 }
 
 .toggle {
@@ -353,10 +359,6 @@ body.mode-light .dropdown-item:hover {
     border-radius: 50%;
     background: var(--subtle);
     transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.toggle:hover .slider {
-    background: var(--panel-hover);
 }
 
 .toggle input:checked + .slider {
@@ -548,21 +550,32 @@ body.mode-light .dropdown-item:hover {
 
 .restart-box {
     margin-top: clamp(0.8rem, 2vh, 1.2rem);
-    padding: 0.9rem 1.4rem;
+    padding: 0.6rem 1.2rem;
     background: var(--panel-2);
-    border-radius: 12px;
-    display: inline-block;
+    border-radius: 10px;
+
+    display: inline-flex;
+    align-self: flex-start;
+
     color: var(--accent);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     letter-spacing: 0.03em;
     cursor: pointer;
+
     transition: all 0.2s ease;
-    flex-shrink: 0;
 }
 
-.restart-box:hover {
+body.mode-dark .restart-box:hover {
     background: var(--panel-hover);
     transform: translateY(-1px);
+    background-color: rgba(144, 143, 143, 0.148);
+}
+
+body.mode-light .restart-box:hover {
+    background: var(--panel-hover);
+    transform: translateY(-1px);
+    background: #dcd6c9;
+
 }
 
 .restart-box:active {

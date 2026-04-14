@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>snailtype</title>
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="./images/favicon.svg">
     <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -23,7 +23,7 @@
 
                 <div class="controls">
                     <div class="control-group">
-                        <span>mode</span>
+                        <span>mode:</span>
                         <div class="dropdown" id="mode-dropdown">
                             <button class="dropdown-selected" type="button">dark</button>
                             <div class="dropdown-menu">
@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="control-group">
-                        <span>color</span>
+                        <span>color:</span>
                         <div class="dropdown" id="accent-dropdown">
                             <button class="dropdown-selected" type="button">green</button>
                             <div class="dropdown-menu">
@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="control-group">
-                        <span>animal</span>
+                        <span>animal:</span>
                         <div class="dropdown" id="skin-dropdown">
                             <button class="dropdown-selected" type="button">snail</button>
                             <div class="dropdown-menu">
@@ -63,7 +63,7 @@
                     </div>
 
                     <div class="control-group focus-toggle">
-                        <span>focus</span>
+                        <span>focus [tab]</span>
                         <div class="toggle">
                             <input type="checkbox" id="focus-toggle" aria-label="Toggle focus mode">
                             <span class="slider"></span>
@@ -120,7 +120,6 @@
                     class="modal-input"
                     min="1"
                     step="1"
-                    placeholder="15"
                 >
                 <div class="custom-stepper">
                     <button type="button" id="step-up" aria-label="Increase time">▲</button>

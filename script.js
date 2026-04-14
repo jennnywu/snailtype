@@ -1,12 +1,12 @@
 const DEFAULT_DURATION = 15;
-const INITIAL_WORD_COUNT = 36;
+const INITIAL_WORD_COUNT = 50;
 const APPEND_WORD_COUNT = 18;
 const MAX_RENDERED_WORDS = 220;
 const RECENT_WORD_WINDOW = 3;
 const MAX_TYPED_LINES = 3;
 
 const APPEND_WHEN_LINES_LEFT = 1;
-const TARGET_LINES_AHEAD = 5;
+const TARGET_LINES_AHEAD = 3;
 const MAX_APPEND_BATCHES = 12;
 
 const textDisplay = document.getElementById("text-display");
@@ -219,7 +219,8 @@ function updateTimeHighlight(activeBtn, animate = true) {
 
 function openCustomTimeModal() {
     customTimeModal.classList.remove("hidden");
-    customTimeInput.value = selectedDuration;
+    customTimeInput.value = "";
+
     requestAnimationFrame(() => customTimeInput.focus());
     document.body.style.overflow = "hidden";
 }
@@ -239,9 +240,17 @@ function submitCustomTime() {
     }
 
     selectedDuration = Math.round(num);
-    const customBtn = document.querySelector('[data-time="custom"]');
-    customBtn.textContent = `${selectedDuration}s`;
-    setActive(customBtn);
+
+    const presetBtn = document.querySelector(`.time-btn[data-time="${selectedDuration}"]`);
+    const customBtn = document.querySelector('.time-btn[data-time="custom"]');
+
+    if (presetBtn) {
+        customBtn.textContent = "custom";
+        setActive(presetBtn);
+    } else {
+        customBtn.textContent = `${selectedDuration}s`;
+        setActive(customBtn);
+    }
 
     closeCustomTimeModal();
     restartTest();
@@ -904,6 +913,18 @@ window.addEventListener("load", () => {
 });
 
 document.addEventListener("keydown", (e) => {
+
+    if (e.key === "Tab") {
+        e.preventDefault();
+
+        if (focusToggle) {
+            focusToggle.checked = !focusToggle.checked;
+            focusToggle.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        return;
+    }
+
     if (!customTimeModal.classList.contains("hidden")) {
         if (e.key === "Escape") {
             e.preventDefault();
