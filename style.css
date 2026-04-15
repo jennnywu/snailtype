@@ -241,7 +241,6 @@ body.mode-dark .dropdown-selected:hover {
 
 body.mode-light .dropdown-selected:hover {
     background: #dcd6c9;
-
 }
 
 .dropdown-selected::after {
@@ -595,7 +594,6 @@ body.mode-light .restart-box:hover {
     background: var(--panel-hover);
     transform: translateY(-1px);
     background: #dcd6c9;
-
 }
 
 .restart-box:active {

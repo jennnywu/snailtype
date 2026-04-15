@@ -9,6 +9,9 @@ const APPEND_WHEN_LINES_LEFT = 1;
 const TARGET_LINES_AHEAD = 3;
 const MAX_APPEND_BATCHES = 12;
 
+const INITIAL_PI_CHUNK_LENGTH = 120;
+const APPEND_PI_CHUNK_LENGTH = 60;
+
 const textDisplay = document.getElementById("text-display");
 const textTrack = document.getElementById("text-track");
 
@@ -51,6 +54,7 @@ let pendingPrune = null;
 let currentMode = "dark";
 let currentAccent = "green";
 let currentSkin = "snail";
+let currentContentMode = "words";
 
 let selectedDuration = DEFAULT_DURATION;
 let chars = [];
@@ -62,6 +66,9 @@ let started = false;
 let finished = false;
 let currentText = "";
 let focusMode = false;
+
+let piGen = null;
+let piStarted = false;
 
 let startTime = null;
 let animationFrameId = null;
@@ -163,6 +170,7 @@ function loadPreferences() {
     currentMode = localStorage.getItem("snailtype-mode") || "dark";
     currentAccent = localStorage.getItem("snailtype-accent") || "green";
     currentSkin = localStorage.getItem("snailtype-skin") || "snail";
+    currentContentMode = localStorage.getItem("snailtype-content-mode") || "words";
     focusMode = localStorage.getItem("snailtype-focus") === "true";
 
     if (focusToggle) {
@@ -172,6 +180,7 @@ function loadPreferences() {
     setDropdownValue("mode-dropdown", currentMode);
     setDropdownValue("accent-dropdown", currentAccent);
     setDropdownValue("skin-dropdown", currentSkin);
+    setDropdownValue("content-dropdown", currentContentMode);
 
     applyAppearance(currentMode, currentAccent);
     applySkin(currentSkin);
@@ -343,6 +352,30 @@ customTimeModal.addEventListener("click", (e) => {
     }
 });
 
+function* piGenerator() {
+    let q = 1n, r = 0n, t = 1n, k = 1n, n = 3n, l = 3n;
+
+    while (true) {
+        if (4n * q + r - t < n * t) {
+            yield Number(n);
+
+            const nr = 10n * (r - n * t);
+            n = ((10n * (3n * q + r)) / t) - 10n * n;
+            q *= 10n;
+            r = nr;
+        } else {
+            const nr = (2n * q + r) * l;
+            const nn = (q * (7n * k) + 2n + r * l) / (t * l);
+            q *= k;
+            t *= l;
+            l += 2n;
+            k += 1n;
+            n = nn;
+            r = nr;
+        }
+    }
+}
+
 function getRandomWord() {
     return wordBank[Math.floor(Math.random() * wordBank.length)];
 }
@@ -384,6 +417,41 @@ function generateWords(count = 30, seedRecentWords = []) {
     }
 
     return words.join(" ");
+}
+
+function getPiChunk(length) {
+    if (!piGen || length <= 0) return "";
+
+    let result = "";
+
+    while (result.length < length) {
+        const digit = String(piGen.next().value);
+
+        if (!piStarted) {
+            result += digit;
+            piStarted = true;
+
+            if (result.length < length) {
+                result += ".";
+            }
+        } else {
+            result += digit;
+        }
+    }
+
+    return result.slice(0, length);
+}
+
+function generateContent(initial = false) {
+    if (currentContentMode === "pi") {
+        return getPiChunk(initial ? INITIAL_PI_CHUNK_LENGTH : APPEND_PI_CHUNK_LENGTH);
+    }
+
+    const recentWords = getRecentWordsFromText(currentText, RECENT_WORD_WINDOW);
+    return generateWords(
+        initial ? INITIAL_WORD_COUNT : APPEND_WORD_COUNT,
+        initial ? [] : recentWords
+    );
 }
 
 function getWordBounds(index) {
@@ -504,7 +572,7 @@ function updateFocusModeView() {
         charEl.classList.remove("dimmed", "focus-visible");
     });
 
-    if (!focusMode) return;
+    if (!focusMode || currentContentMode === "pi") return;
 
     const safeIndex = Math.min(currentIndex, currentText.length - 1);
     if (safeIndex < 0) return;
@@ -529,7 +597,7 @@ function updateFocusModeView() {
 }
 
 function isCharVisibleInFocus(index) {
-    if (!focusMode || !currentText.length) return true;
+    if (!focusMode || !currentText.length || currentContentMode === "pi") return true;
 
     const safeIndex = Math.min(currentIndex, currentText.length - 1);
     if (safeIndex < 0) return true;
@@ -589,11 +657,20 @@ function renderText(text, append = false) {
 }
 
 function loadInitialWords() {
-    currentText = generateWords(INITIAL_WORD_COUNT);
+    currentText = generateContent(true);
     renderText(currentText);
 }
 
 function appendMoreWords() {
+    if (currentContentMode === "pi") {
+        const extra = getPiChunk(APPEND_PI_CHUNK_LENGTH);
+        if (!extra) return false;
+
+        currentText += extra;
+        renderText(extra, true);
+        return true;
+    }
+
     const currentWordCount = currentText.trim()
         ? currentText.trim().split(/\s+/).length
         : 0;
@@ -683,7 +760,7 @@ function updateSnailProgress() {
 
     const animalLeft = progress * maxLeft;
     snailIcon.style.left = `${animalLeft}px`;
-  
+
     const scale = ["bunny", "turtle", "fish"].includes(currentSkin) ? 1.15 : 1;
     snailIcon.style.transform = `translateY(-50%) scale(${scale})`;
 
@@ -731,7 +808,8 @@ function playHappyWiggle() {
         if (progress < 1) {
             wiggleFrameId = requestAnimationFrame(wiggle);
         } else {
-            snailIcon.style.transform = "translateY(-50%) rotate(0deg) scale(1, 1)";
+            const scale = ["bunny", "turtle", "fish"].includes(currentSkin) ? 1.15 : 1;
+            snailIcon.style.transform = `translateY(-50%) rotate(0deg) scale(${scale})`;
             wiggleFrameId = null;
         }
     }
@@ -805,6 +883,9 @@ function restartTest() {
         wiggleFrameId = null;
     }
 
+    piGen = piGenerator();
+    piStarted = false;
+
     snailIcon.style.transition = "left 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
     snailLine.style.transition = "left 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
     snailTrail.style.transition = "width 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
@@ -820,11 +901,16 @@ function restartTest() {
     startTime = null;
 
     snailTrail.textContent = "";
-    
+
     const scale = ["bunny", "turtle", "fish"].includes(currentSkin) ? 1.15 : 1;
     snailIcon.style.transform = `translateY(-50%) rotate(0deg) scale(${scale})`;
 
     hintEl.style.display = "block";
+    hintEl.textContent =
+        currentContentMode === "pi"
+            ? "start typing digits of pi. press [enter] to restart."
+            : "start typing to begin the test. press [enter] to restart.";
+
     restartBox.classList.add("hidden");
     timeEl.textContent = timeLeft;
     textDisplay.style.display = "block";
@@ -919,6 +1005,13 @@ window.addEventListener("load", () => {
     setupDropdown("accent-dropdown", currentAccent, (value) => {
         applyAppearance(currentMode, value);
         setDropdownValue("accent-dropdown", value);
+    });
+
+    setupDropdown("content-dropdown", currentContentMode, (value) => {
+        currentContentMode = value;
+        localStorage.setItem("snailtype-content-mode", value);
+        setDropdownValue("content-dropdown", value);
+        restartTest();
     });
 
     setupDropdown("skin-dropdown", currentSkin, (value) => {
